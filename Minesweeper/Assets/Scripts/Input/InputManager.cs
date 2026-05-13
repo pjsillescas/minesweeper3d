@@ -7,15 +7,17 @@ public class InputManager : MonoBehaviour
 	private float comboWindow = 0.15f;
 
 	private InputActions actions;
-	private float leftPressedTime = -1f;
-	private float rightPressedTime = -1f;
+	private float leftPressedTime;
+	private float rightPressedTime;
 
 	private void Awake()
 	{
 		actions = new InputActions();
-	}
+		leftPressedTime = -1f;
+		rightPressedTime = -1f;
+}
 
-	private void OnEnable()
+private void OnEnable()
 	{
 		actions.Enable();
 	}

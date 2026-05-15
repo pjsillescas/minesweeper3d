@@ -1,23 +1,32 @@
+using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class InputManager : MonoBehaviour
 {
+	public static event EventHandler<Vector2> OnClick;
+	public static event EventHandler<Vector2> OnMark;
+	public static event EventHandler<Vector2> OnChordStart;
+	public static event EventHandler<Vector2> OnChordEnd;
+
 	[SerializeField]
 	private float comboWindow = 0.15f;
 
 	private InputActions actions;
 	private float leftPressedTime;
 	private float rightPressedTime;
+	private bool isChord;
 
 	private void Awake()
 	{
 		actions = new InputActions();
 		leftPressedTime = -1f;
 		rightPressedTime = -1f;
-}
+		isChord = false;
+	}
 
-private void OnEnable()
+	private void OnEnable()
 	{
 		actions.Enable();
 	}
@@ -30,65 +39,85 @@ private void OnEnable()
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
-
+		;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		var isLeftButtonPressed = actions.Player.Interact.WasPressedThisFrame();
-		var isRightButtonPressed = actions.Player.Mark.WasPressedThisFrame();
+		var isLeftButtonPressed = actions.Player.Interact.IsPressed();
+		var isRightButtonPressed = actions.Player.Mark.IsPressed();
 
-		if (isLeftButtonPressed)
+		var isLeftButtonPressedNow = actions.Player.Interact.WasPressedThisFrame();
+		var isRightButtonPressedNow = actions.Player.Mark.WasPressedThisFrame();
+
+		if (isLeftButtonPressedNow && !isChord)
 		{
 			leftPressedTime = Time.time;
 
 			if (Time.time - rightPressedTime <= comboWindow)
 			{
-				OnBothButtonsPressed();
+				OnChordStartMethod();
+				isChord = true;
 			}
 			else
 			{
-				Invoke(nameof(OnLeftOnly), comboWindow);
+				Invoke(nameof(OnLeftClick), comboWindow);
 			}
 		}
 
-		if (isRightButtonPressed)
+		if (isRightButtonPressedNow && !isChord)
 		{
 			rightPressedTime = Time.time;
 
 			if (Time.time - leftPressedTime <= comboWindow)
 			{
-				OnBothButtonsPressed();
+				OnChordStartMethod();
+				isChord = true;
 			}
 			else
 			{
-				Invoke(nameof(OnRightOnly), comboWindow);
+				Invoke(nameof(OnRightClick), comboWindow);
 			}
+		}
+
+		if (isChord && !isLeftButtonPressed && !isRightButtonPressed)
+		{
+			isChord = false;
+			OnChordEndMethod();
 		}
 	}
 
-	void OnBothButtonsPressed()
+	private void OnChordStartMethod()
 	{
 		CancelInvoke();
 
-		Debug.Log("Both buttons!");
+		//Debug.Log("Both buttons!");
+		OnChordStart?.Invoke(this, Mouse.current.position.value);
 	}
 
-	void OnLeftOnly()
+	private void OnChordEndMethod()
+	{
+		//Debug.Log("Chord end");
+		OnChordEnd?.Invoke(this, Mouse.current.position.value);
+	}
+
+	private void OnLeftClick()
 	{
 		// Prevent false trigger if right was pressed shortly after
 		if (Time.time - rightPressedTime > comboWindow)
 		{
-			Debug.Log("Left only");
+			//Debug.Log("Left only");
+			OnClick?.Invoke(this, Mouse.current.position.value);
 		}
 	}
 
-	void OnRightOnly()
+	private void OnRightClick()
 	{
 		if (Time.time - leftPressedTime > comboWindow)
 		{
-			Debug.Log("Right only");
+			// Debug.Log("Right only");
+			OnMark?.Invoke(this, Mouse.current.position.value);
 		}
 	}
 }

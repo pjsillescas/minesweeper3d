@@ -223,6 +223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 929b7d4ecaa3f294c9787786dad9103e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InputManager
+  comboWindow: 0.15
 --- !u!4 &759000119
 Transform:
   m_ObjectHideFlags: 0
@@ -282,16 +283,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2c5e172e9c2ad3489954d8707b118ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoardManager
+  cellLayer:
+    serializedVersion: 2
+    m_Bits: 64
   HiddenCellPrefab: {fileID: 6585455964868587201, guid: 5ba0fde02a7b71a4f8696c5917f10db4, type: 3}
-  Cell1Prefab: {fileID: 0}
-  Cell2Prefab: {fileID: 0}
-  Cell3Prefab: {fileID: 0}
-  Cell4Prefab: {fileID: 0}
-  Cell5Prefab: {fileID: 0}
-  Cell6Prefab: {fileID: 0}
-  Cell7Prefab: {fileID: 0}
-  Cell8Prefab: {fileID: 0}
-  MinePrefab: {fileID: 0}
+  Cell1Prefab: {fileID: 6774840775808263805, guid: 212cf515bc53fc44c88311c9ad47bcd3, type: 3}
+  Cell2Prefab: {fileID: 4420387466478866989, guid: cd1d134d0b8980b429b356b5b60a455d, type: 3}
+  Cell3Prefab: {fileID: 7305841001969869804, guid: fa803edf719ba654fbf5a237f4dfe804, type: 3}
+  Cell4Prefab: {fileID: 7408442236155489838, guid: 0955b497f3bfd0e44b0accb5623e8924, type: 3}
+  Cell5Prefab: {fileID: 2733591195979284626, guid: 31965f73b3279ee439fa8e61671eb574, type: 3}
+  Cell6Prefab: {fileID: 3709410447065091899, guid: 555ea8d6d499e634fbd1142c36ae4d9f, type: 3}
+  Cell7Prefab: {fileID: 2042792585373265338, guid: 33a356246dcbece4fa5c383d6c3e06e9, type: 3}
+  Cell8Prefab: {fileID: 8066798357608522169, guid: efb19d101ec80d44c8b5021b1463967d, type: 3}
+  MinePrefab: {fileID: 299518373307738935, guid: 9239bfcb79a151343bb0de0997497bc0, type: 3}
 --- !u!1 &1204421655
 GameObject:
   m_ObjectHideFlags: 0
@@ -427,6 +431,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1656046940}
   - component: {fileID: 1656046939}
+  - component: {fileID: 1656046941}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -514,6 +519,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &1656046941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1656046938}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalLightData
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_CustomShadowLayers: 0
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
+  m_SoftShadowQuality: 0
+  m_RenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_ShadowRenderingLayersMask:
+    serializedVersion: 0
+    m_Bits: 1
+  m_Version: 4
+  m_LightLayerMask: 1
+  m_ShadowLayerMask: 1
+  m_RenderingLayers: 1
+  m_ShadowRenderingLayers: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

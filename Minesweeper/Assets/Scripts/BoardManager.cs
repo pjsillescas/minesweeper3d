@@ -37,7 +37,8 @@ public class BoardManager : MonoBehaviour
 	[SerializeField]
 	private GameObject MinePrefab;
 
-	private List<Cell> cells;
+	//private List<Cell> cells;
+	private Cell[,] cells;
 	private int numMines;
 	private bool isInitialized;
 	private int numRows;
@@ -51,7 +52,9 @@ public class BoardManager : MonoBehaviour
 		this.numMines = numMines;
 		OnMinesChanged?.Invoke(this, numMines);
 
-		cells = new();
+		// cells = new();
+		cells = new Cell[rows, columns];
+		
 		for (int i = 0; i < rows; i++)
 		{
 			for (int j = 0; j < columns; j++)
@@ -60,25 +63,46 @@ public class BoardManager : MonoBehaviour
 				var z = (j - columns / 2) * cellWidth;
 				var cell = Instantiate(HiddenCellPrefab, new Vector3(x, 0, z), Quaternion.identity).GetComponent<Cell>();
 				cell.Init(i, j);
-				cells.Add(cell);
+				//cells.Add(cell);
+				cells[i, j] = cell;
 			}
 		}
 	}
 
-	private List<int> SetMines(int i, int j)
+	class Position
 	{
-		int k = i * numRows + j;
-		var mines = new List<int>();
+		public int i;
+		public int j;
+
+		public override bool Equals(object p)
+		{
+			Position p1 = p as Position;
+			return i == p1.i && j == p1.j;
+		}
+
+		public override int GetHashCode()
+		{
+			return i + j;
+		}
+	}
+	
+	private List<Position> SetMines(int i, int j)
+	{
+		//int k = i * numRows + j;
+		var p0 = new Position() { i = i, j = j };
+		var mines = new List<Position>();
+		mines.Add(new Position() { i = 0, j = 0 });
+
 		for (int n = 0; n < numMines; n++)
 		{
-			int index;
+			Position p;
 			do
 			{
-				index = UnityEngine.Random.Range(0, numRows * numColumns - 1);
+				p = new Position() { i = UnityEngine.Random.Range(0, numRows - 1), j = UnityEngine.Random.Range(0, numColumns - 1) };
 			}
-			while (index == k || mines.Contains(index));
+			while (p0.Equals(p) || mines.Contains(p));
 
-			mines.Add(index);
+			mines.Add(p);
 		}
 
 		return mines;
@@ -92,12 +116,16 @@ public class BoardManager : MonoBehaviour
 		var i = cell.GetRow();
 		var j = cell.GetColumn();
 
-		for (int r = 0; r < 3; r++)
+		for (int r = -1; r <= 1; r++)
 		{
-			for (int c = 0; c < 3; c++)
+			var row = i + r;
+			for (int c = -1; c <= 1; c++)
 			{
-				var index = (i + r) * numRows + j + c;
-				if (cells[index].GetValue() == Cell.CellValue.MINE)
+				var col = j + c;
+				//var index = (i + r) * numRows + j + c;
+				//if (cells[index].GetValue() == Cell.CellValue.MINE)
+				if (0 <= row && row < numRows && 0 <= col && col < numColumns &&
+					cells[row,col].GetValue() == Cell.CellValue.MINE)
 				{
 					num++;
 				}
@@ -114,12 +142,15 @@ public class BoardManager : MonoBehaviour
 
 		mines.ForEach(index =>
 		{
-			cells[index].SetValue(Cell.CellValue.MINE);
+			Debug.Log($"mine ({index.i},{index.j})");
+			//cells[index].SetValue(Cell.CellValue.MINE);
+			cells[index.i, index.j].SetValue(Cell.CellValue.MINE);
 
 			//int j = index % numRows;
 			//int i = (index - j) / numRows;
 		});
 
+		/*
 		cells.ForEach(cell =>
 		{
 			if (cell.GetValue() != Cell.CellValue.MINE)
@@ -127,6 +158,20 @@ public class BoardManager : MonoBehaviour
 				cell.SetValue(GetSurroundingMinesNumber(cell));
 			}
 		});
+		*/
+		for(int r=0;r<numRows;r++)
+		{
+			for(int c=0;c<numColumns;c++)
+			{
+				var cell = cells[r, c];
+				if (cell.GetValue() != Cell.CellValue.MINE)
+				{
+					var n = GetSurroundingMinesNumber(cell);
+					Debug.Log($"({i},{j})={n}");
+					cell.SetValue(GetSurroundingMinesNumber(cell));
+				}
+			}
+		}
 
 	}
 
@@ -171,6 +216,7 @@ public class BoardManager : MonoBehaviour
 				Init(cell.GetRow(), cell.GetColumn());
 			}
 
+			Debug.Log($"value {cell.GetValue()}");
 			var value = cell.Uncover();
 
 			GameObject prefab = value switch
@@ -183,12 +229,15 @@ public class BoardManager : MonoBehaviour
 				Cell.CellValue.V6 => Cell6Prefab,
 				Cell.CellValue.V7 => Cell7Prefab,
 				Cell.CellValue.V8 => Cell8Prefab,
+				Cell.CellValue.MINE => MinePrefab,
 				_ => null,
 			};
 
 			if (prefab != null)
 			{
-				Instantiate(prefab, cell.transform.position, Quaternion.identity);
+				//Instantiate(prefab, cell.transform.position, Quaternion.identity);
+				//Instantiate(prefab, cell.transform.position, new Quaternion(90,0,180,0));
+				Instantiate(prefab, cell.transform.position, cell.transform.rotation).transform.Rotate(90,0,90);
 			}
 		}
 	}
@@ -230,7 +279,8 @@ public class BoardManager : MonoBehaviour
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
-		BuildBoard(16, 30, 1f, 99);
+		//BuildBoard(16, 30, 1f, 99);
+		BuildBoard(5, 5, 1f, 5);
 	}
 
 	// Update is called once per frame

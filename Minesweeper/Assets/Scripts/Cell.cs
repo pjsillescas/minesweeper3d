@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshRenderer))]
@@ -41,6 +42,26 @@ public class Cell : MonoBehaviour
 			8 => CellValue.V8,
 			_ => CellValue.NONE,
 		};
+	}
+
+	public void Chord()
+	{
+		if (isMarked)
+		{
+			return;
+		}
+
+		meshRenderer.material = ChordedMaterial;
+	}
+
+	public void Unchord()
+	{
+		if (isMarked)
+		{
+			return;
+		}
+
+		meshRenderer.material = UnmarkedMaterial;
 	}
 
 	public void Init(int i, int j)

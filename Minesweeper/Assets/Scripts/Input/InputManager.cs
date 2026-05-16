@@ -8,6 +8,7 @@ public class InputManager : MonoBehaviour
 	public static event EventHandler<Vector2> OnClick;
 	public static event EventHandler<Vector2> OnMark;
 	public static event EventHandler<Vector2> OnChordStart;
+	public static event EventHandler<Vector2> OnChord;
 	public static event EventHandler<Vector2> OnChordEnd;
 
 	[SerializeField]
@@ -86,6 +87,10 @@ public class InputManager : MonoBehaviour
 			isChord = false;
 			OnChordEndMethod();
 		}
+		else if (isChord)
+		{
+			OnChordMethod();
+		}
 	}
 
 	private void OnChordStartMethod()
@@ -94,6 +99,13 @@ public class InputManager : MonoBehaviour
 
 		//Debug.Log("Both buttons!");
 		OnChordStart?.Invoke(this, Mouse.current.position.value);
+	}
+
+	private void OnChordMethod()
+	{
+		CancelInvoke();
+
+		OnChord?.Invoke(this, Mouse.current.position.value);
 	}
 
 	private void OnChordEndMethod()

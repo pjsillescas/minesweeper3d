@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2441027577053521525}
   - component: {fileID: 5378483891693670304}
   - component: {fileID: 4711155782094152686}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: V8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -203,7 +203,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4401855705765111431}
-  m_Layer: 0
+  - component: {fileID: 2073159423502438755}
+  - component: {fileID: -6247843795014114952}
+  m_Layer: 6
   m_Name: V8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -226,3 +228,37 @@ Transform:
   - {fileID: 5858423274574125981}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 180, z: 180}
+--- !u!114 &2073159423502438755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6203970946072332340}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6094d062a72430846ba29eef633268e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Billboard
+  value: 8
+--- !u!65 &-6247843795014114952
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6203970946072332340}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}

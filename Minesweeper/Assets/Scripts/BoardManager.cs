@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class BoardManager : MonoBehaviour
 {
@@ -54,7 +56,7 @@ public class BoardManager : MonoBehaviour
 
 		// cells = new();
 		cells = new Cell[rows, columns];
-		
+
 		for (int i = 0; i < rows; i++)
 		{
 			for (int j = 0; j < columns; j++)
@@ -85,7 +87,7 @@ public class BoardManager : MonoBehaviour
 			return i + j;
 		}
 	}
-	
+
 	private List<Position> SetMines(int i, int j)
 	{
 		//int k = i * numRows + j;
@@ -125,7 +127,7 @@ public class BoardManager : MonoBehaviour
 				//var index = (i + r) * numRows + j + c;
 				//if (cells[index].GetValue() == Cell.CellValue.MINE)
 				if (0 <= row && row < numRows && 0 <= col && col < numColumns &&
-					cells[row,col].GetValue() == Cell.CellValue.MINE)
+					cells[row, col].GetValue() == Cell.CellValue.MINE)
 				{
 					num++;
 				}
@@ -159,9 +161,9 @@ public class BoardManager : MonoBehaviour
 			}
 		});
 		*/
-		for(int r=0;r<numRows;r++)
+		for (int r = 0; r < numRows; r++)
 		{
-			for(int c=0;c<numColumns;c++)
+			for (int c = 0; c < numColumns; c++)
 			{
 				var cell = cells[r, c];
 				if (cell.GetValue() != Cell.CellValue.MINE)
@@ -182,6 +184,17 @@ public class BoardManager : MonoBehaviour
 		if (Physics.Raycast(ray, out RaycastHit hit, 50f, cellLayer) && hit.collider.TryGetComponent(out Cell cell))
 		{
 			return cell;
+		}
+
+		return null;
+	}
+	private Billboard GetClickedBillboard(Vector2 mousePosition)
+	{
+		var ray = FindAnyObjectByType<Camera>().ScreenPointToRay(mousePosition);
+
+		if (Physics.Raycast(ray, out RaycastHit hit, 50f, cellLayer) && hit.collider.TryGetComponent(out Billboard billboard))
+		{
+			return billboard;
 		}
 
 		return null;
@@ -210,34 +223,50 @@ public class BoardManager : MonoBehaviour
 		var cell = GetClickedCell(mousePosition);
 		if (cell != null)
 		{
-			if (!isInitialized)
-			{
-				isInitialized = true;
-				Init(cell.GetRow(), cell.GetColumn());
-			}
+			ClickCell(cell);
+		}
+	}
 
-			Debug.Log($"value {cell.GetValue()}");
-			var value = cell.Uncover();
+	private void ClickCell(Cell cell)
+	{
+		if (!isInitialized)
+		{
+			isInitialized = true;
+			Init(cell.GetRow(), cell.GetColumn());
+		}
 
-			GameObject prefab = value switch
-			{
-				Cell.CellValue.V1 => Cell1Prefab,
-				Cell.CellValue.V2 => Cell2Prefab,
-				Cell.CellValue.V3 => Cell3Prefab,
-				Cell.CellValue.V4 => Cell4Prefab,
-				Cell.CellValue.V5 => Cell5Prefab,
-				Cell.CellValue.V6 => Cell6Prefab,
-				Cell.CellValue.V7 => Cell7Prefab,
-				Cell.CellValue.V8 => Cell8Prefab,
-				Cell.CellValue.MINE => MinePrefab,
-				_ => null,
-			};
+		if(cell.GetIsMarked())
+		{
+			return;
+		}
 
-			if (prefab != null)
+		Debug.Log($"value {cell.GetValue()}");
+		var value = cell.Uncover();
+
+		GameObject prefab = value switch
+		{
+			Cell.CellValue.V1 => Cell1Prefab,
+			Cell.CellValue.V2 => Cell2Prefab,
+			Cell.CellValue.V3 => Cell3Prefab,
+			Cell.CellValue.V4 => Cell4Prefab,
+			Cell.CellValue.V5 => Cell5Prefab,
+			Cell.CellValue.V6 => Cell6Prefab,
+			Cell.CellValue.V7 => Cell7Prefab,
+			Cell.CellValue.V8 => Cell8Prefab,
+			Cell.CellValue.MINE => MinePrefab,
+			_ => null,
+		};
+
+		if (prefab != null)
+		{
+			//Instantiate(prefab, cell.transform.position, Quaternion.identity);
+			//Instantiate(prefab, cell.transform.position, new Quaternion(90,0,180,0));
+			var element = Instantiate(prefab, cell.transform.position, cell.transform.rotation);
+			element.transform.Rotate(90, 0, 90);
+
+			if (element.gameObject.TryGetComponent(out Billboard billboard))
 			{
-				//Instantiate(prefab, cell.transform.position, Quaternion.identity);
-				//Instantiate(prefab, cell.transform.position, new Quaternion(90,0,180,0));
-				Instantiate(prefab, cell.transform.position, cell.transform.rotation).transform.Rotate(90,0,90);
+				billboard.SetCell(cell);
 			}
 		}
 	}
@@ -247,6 +276,7 @@ public class BoardManager : MonoBehaviour
 		InputManager.OnClick += OnClick;
 		InputManager.OnMark += OnMark;
 		InputManager.OnChordStart += OnChordStart;
+		InputManager.OnChord += OnChord;
 		InputManager.OnChordEnd += OnChordEnd;
 	}
 
@@ -255,6 +285,7 @@ public class BoardManager : MonoBehaviour
 		InputManager.OnClick -= OnClick;
 		InputManager.OnMark -= OnMark;
 		InputManager.OnChordStart -= OnChordStart;
+		InputManager.OnChord -= OnChord;
 		InputManager.OnChordEnd -= OnChordEnd;
 	}
 
@@ -267,13 +298,107 @@ public class BoardManager : MonoBehaviour
 	{
 		TryMarkCell(mousePosition);
 	}
+
+	private List<Cell> chordedCells = new();
+
 	private void OnChordStart(object sender, Vector2 mousePosition)
 	{
-		;
+		OnChord(sender, mousePosition);
 	}
+
+	private void OnChord(object sender, Vector2 mousePosition)
+	{
+		var cell = GetClickedCell(mousePosition);
+		if (cell != null)
+		{
+			UpdateChordedCells(cell.GetRow(), cell.GetColumn());
+		}
+		else
+		{
+			var billboard = GetClickedBillboard(mousePosition);
+			if (billboard != null)
+			{
+				UpdateChordedCells(billboard.GetRow(), billboard.GetColumn());
+			}
+		}
+	}
+
+	private List<Cell> GetSurroundingCells(int i, int j)
+	{
+		var surroundingCells = new List<Cell>();
+
+		for (int r = -1; r <= 1; r++)
+		{
+			var row = i + r;
+			for (int c = -1; c <= 1; c++)
+			{
+				var col = j + c;
+				if (0 <= row && row < numRows && 0 <= col && col < numColumns &&
+					cells[row, col] != null)
+				{
+					surroundingCells.Add(cells[row, col]);
+				}
+			}
+		}
+
+		return surroundingCells;
+	}
+
+	private void UpdateChordedCells(int row, int column)
+	{
+		var surroundingCells = GetSurroundingCells(row, column);
+		//Debug.Log($"surrounding {surroundingCells.Count}");
+		chordedCells.ForEach(cell =>
+		{
+			if (cell != null && !surroundingCells.Contains(cell))
+			{
+				cell.Unchord();
+			}
+		});
+
+		chordedCells.Clear();
+		surroundingCells.ForEach(cell =>
+		{
+			if (cell != null)
+			{
+				cell.Chord();
+				chordedCells.Add(cell);
+			}
+		});
+	}
+
 	private void OnChordEnd(object sender, Vector2 mousePosition)
 	{
-		;
+		var billboard = GetClickedBillboard(mousePosition);
+		if (billboard != null)
+		{
+
+			var surroundingCells = GetSurroundingCells(billboard.GetRow(), billboard.GetColumn());
+
+			var numMarkedSurroundingCells = surroundingCells.Where(cell => cell.GetIsMarked()).Count();
+
+			Debug.Log($"{numMarkedSurroundingCells} == {billboard.GetValue()}");
+			if (numMarkedSurroundingCells == billboard.GetValue())
+			{
+				chordedCells.ForEach(cell =>
+				{
+					if (cell != null)
+					{
+						ClickCell(cell);
+					}
+				});
+
+			}
+		}
+
+		chordedCells.ForEach(cell =>
+		{
+			if (cell != null)
+			{
+				cell.Unchord();
+			}
+		});
+
 	}
 
 	// Start is called once before the first execution of Update after the MonoBehaviour is created

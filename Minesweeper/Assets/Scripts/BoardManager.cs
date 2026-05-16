@@ -279,8 +279,8 @@ public class BoardManager : MonoBehaviour
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
-		//BuildBoard(16, 30, 1f, 99);
-		BuildBoard(5, 5, 1f, 5);
+		BuildBoard(16, 30, 1f, 99);
+		//BuildBoard(5, 5, 1f, 5);
 	}
 
 	// Update is called once per frame

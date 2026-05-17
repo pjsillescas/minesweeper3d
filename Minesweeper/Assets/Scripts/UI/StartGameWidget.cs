@@ -7,7 +7,7 @@ public class StartGameWidget : MonoBehaviour
 	private const float CELL_WIDTH = 1f;
 
 	private const int MAX_ROWS = 16;
-	private const int MAX_COLS = 20;
+	private const int MAX_COLS = 30;
 	private const int MAX_MINES = 200;
 
 	[SerializeField]

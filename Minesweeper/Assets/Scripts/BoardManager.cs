@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -51,6 +52,10 @@ public class BoardManager : MonoBehaviour
 	private int numRows;
 	private int numColumns;
 
+	private void Awake()
+	{
+		instantiatedPrefabs = new();
+	}
 	public void BuildBoard(int rows, int columns, float cellWidth, int numMines)
 	{
 		numRows = rows;
@@ -60,7 +65,7 @@ public class BoardManager : MonoBehaviour
 		OnMinesChanged?.Invoke(this, numMines);
 
 		// cells = new();
-		instantiatedPrefabs = new();
+		instantiatedPrefabs.Clear();
 		cells = new Cell[rows, columns];
 
 		for (int i = 0; i < rows; i++)
@@ -75,6 +80,17 @@ public class BoardManager : MonoBehaviour
 				cells[i, j] = cell;
 			}
 		}
+
+		StartCoroutine(DelayGameStart());
+	}
+
+	private IEnumerator DelayGameStart()
+	{
+		yield return new WaitForSeconds(0.3f);
+
+		isGameStarted = true;
+		isInitialized = false;
+
 	}
 
 	class Position
@@ -96,12 +112,10 @@ public class BoardManager : MonoBehaviour
 
 	private List<Position> SetMines(int i, int j)
 	{
+		Debug.Log("setting mines");
 		//int k = i * numRows + j;
 		var p0 = new Position() { i = i, j = j };
-		var mines = new List<Position>()
-		{
-			new() { i = 0, j = 0 }
-		};
+		var mines = new List<Position>();
 
 		for (int n = 0; n < numMines; n++)
 		{
@@ -183,7 +197,6 @@ public class BoardManager : MonoBehaviour
 			}
 		}
 
-		isGameStarted = true;
 		OnStartGame?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -239,6 +252,7 @@ public class BoardManager : MonoBehaviour
 
 	public void TryClickCell(Vector2 mousePosition)
 	{
+		Debug.Log($"game started {isGameStarted}");
 		if (!isGameStarted)
 		{
 			return;
@@ -290,7 +304,7 @@ public class BoardManager : MonoBehaviour
 
 			instantiatedPrefabs.Add(element);
 
-			if (element.gameObject.TryGetComponent(out Billboard billboard))
+			if (element.TryGetComponent(out Billboard billboard))
 			{
 				billboard.SetCell(cell);
 			}
@@ -318,11 +332,13 @@ public class BoardManager : MonoBehaviour
 				if (cells[i, j] != null)
 				{
 					Destroy(cells[i, j].gameObject, 0.01f);
+					cells[i, j] = null;
 				}
 			}
 		}
 
-		instantiatedPrefabs.ForEach(obj => Destroy(obj.gameObject, 0.01f));
+		instantiatedPrefabs.ForEach(obj => Destroy(obj, 0.01f));
+		instantiatedPrefabs.Clear();
 	}
 
 
@@ -460,6 +476,7 @@ public class BoardManager : MonoBehaviour
 	void Start()
 	{
 		isGameStarted = false;
+		isInitialized = false;
 
 		//BuildBoard(16, 30, 1f, 99);
 		//BuildBoard(5, 5, 1f, 5);

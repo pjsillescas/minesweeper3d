@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshRenderer))]
@@ -16,6 +17,7 @@ public class Cell : MonoBehaviour
 	private int i;
 	private int j;
 	private bool isMarked;
+	private bool isCovered;
 	private MeshRenderer meshRenderer;
 	private CellValue value;
 
@@ -64,12 +66,18 @@ public class Cell : MonoBehaviour
 		meshRenderer.material = UnmarkedMaterial;
 	}
 
+	public bool IsCovered()
+	{
+		return !isMarked && isCovered;
+	}
+
 	public void Init(int i, int j)
 	{
 		this.i = i;
 		this.j = j;
 		isMarked = false;
 		value = CellValue.NONE;
+		isCovered = true;
 	}
 
 	public int GetRow() => i;
@@ -97,6 +105,8 @@ public class Cell : MonoBehaviour
 
 	public CellValue Uncover()
 	{
+		isCovered = false;
+
 		Debug.Log($"uncover ({i},{j})");
 		Destroy(gameObject, 0.01f);
 

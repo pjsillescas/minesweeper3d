@@ -112,7 +112,6 @@ public class BoardManager : MonoBehaviour
 
 	private List<Position> SetMines(int i, int j)
 	{
-		Debug.Log("setting mines");
 		//int k = i * numRows + j;
 		var p0 = new Position() { i = i, j = j };
 		var mines = new List<Position>();
@@ -247,12 +246,13 @@ public class BoardManager : MonoBehaviour
 
 				OnMinesChanged?.Invoke(this, numMines);
 			}
+
+			CheckForGameWon();
 		}
 	}
 
 	public void TryClickCell(Vector2 mousePosition)
 	{
-		Debug.Log($"game started {isGameStarted}");
 		if (!isGameStarted)
 		{
 			return;
@@ -279,6 +279,9 @@ public class BoardManager : MonoBehaviour
 		}
 
 		//Debug.Log($"value {cell.GetValue()}");
+		var i = cell.GetRow();
+		var j = cell.GetColumn();
+		cells[i, j] = null;
 		var value = cell.Uncover();
 
 		GameObject prefab = value switch
@@ -309,15 +312,65 @@ public class BoardManager : MonoBehaviour
 				billboard.SetCell(cell);
 			}
 		}
+		else
+		{
+			UncoverNeighbours(cell);
+		}
 
-		if (value == Cell.CellValue.MINE)
+		if (isGameStarted && value == Cell.CellValue.MINE)
 		{
 			EndGame(GameResult.LOST);
+		}
+
+		CheckForGameWon();
+	}
+
+	private void CheckForGameWon()
+	{
+		if (isGameStarted && IsGameWon())
+		{
+			EndGame(GameResult.WON);
+		}
+	}
+
+	private bool IsGameWon()
+	{
+		int numRemainingTiles = 0;
+
+		for (int i = 0; i < numRows; i++)
+		{
+			for (int j = 0; j < numColumns; j++)
+			{
+				if (cells[i, j] != null && !cells[i, j].GetIsMarked())
+				{
+					numRemainingTiles++;
+				}
+			}
+		}
+		//Debug.Log($"remaining tiles {numRemainingTiles}");
+		return numRemainingTiles == 0;
+	}
+
+	private void UncoverNeighbours(Cell cell)
+	{
+		var i = cell.GetRow();
+		var j = cell.GetColumn();
+		for (int r = -1; r <= 1; r++)
+		{
+			for (int c = -1; c <= 1; c++)
+			{
+				if (0 <= (i + r) && (i + r) < numRows && 0 <= (j + c) && (j + c) < numColumns && cells[i + r, j + c] != null && cells[i + r, j + c].IsCovered())
+				{
+					//Debug.Log($"uncovering ({i + r},{j + c})");
+					ClickCell(cells[i + r, j + c]);
+				}
+			}
 		}
 	}
 
 	private void EndGame(GameResult result)
 	{
+		Debug.Log($"game ended {result}");
 		isGameStarted = false;
 		CleanBoard();
 		OnEndGame?.Invoke(this, result);
@@ -446,7 +499,7 @@ public class BoardManager : MonoBehaviour
 
 			var surroundingCells = GetSurroundingCells(billboard.GetRow(), billboard.GetColumn());
 
-			var numMarkedSurroundingCells = surroundingCells.Where(cell => cell.GetIsMarked()).Count();
+			var numMarkedSurroundingCells = surroundingCells.Count(cell => cell.GetIsMarked());
 
 			// Debug.Log($"{numMarkedSurroundingCells} == {billboard.GetValue()}");
 			if (numMarkedSurroundingCells == billboard.GetValue())

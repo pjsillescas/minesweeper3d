@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 6019039938096397658}
   - component: {fileID: 4747832783095135286}
   - component: {fileID: 7664269662249643221}
+  - component: {fileID: 7704748704263519819}
   m_Layer: 6
   m_Name: V7
   m_TagString: Untagged
@@ -68,6 +69,33 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &7704748704263519819
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4370741626995461844}
+  serializedVersion: 5
+  m_Mass: 1000
+  m_LinearDamping: 20
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &8415425387780152814
 GameObject:
   m_ObjectHideFlags: 0

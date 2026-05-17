@@ -12,6 +12,8 @@ public class StartGameWidget : MonoBehaviour
 
 	[SerializeField]
 	private TMP_Dropdown OptionsDropdown;
+	[SerializeField]
+	private TextMeshProUGUI GameResultText;
 
 	[SerializeField]
 	private TMP_InputField NumRowsText;
@@ -28,6 +30,7 @@ public class StartGameWidget : MonoBehaviour
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
+		GameResultText.text = "";
 		boardManager = FindAnyObjectByType<BoardManager>();
 
 		StartButton.onClick.RemoveAllListeners();
@@ -37,6 +40,8 @@ public class StartGameWidget : MonoBehaviour
 
 	private void OnEndGame(object sender, BoardManager.GameResult result)
 	{
+		Debug.Log(result);
+		GameResultText.text = (result == BoardManager.GameResult.WON) ? "You Won!" : "You lost!";
 		gameObject.SetActive(true);
 	}
 
@@ -47,9 +52,36 @@ public class StartGameWidget : MonoBehaviour
 
 	private void StartButtonClick()
 	{
-		var rows = GetValue(NumRowsText, MAX_ROWS);
-		var cols = GetValue(NumColsText, MAX_COLS);
-		var mines = GetValue(NumMinesText, MAX_MINES);
+		int rows;
+		int cols;
+		int mines;
+
+		var value = OptionsDropdown.options[OptionsDropdown.value].text.ToUpper();
+
+		if (value == "BEGINNER")
+		{
+			rows = 9;
+			cols = 9;
+			mines = 10;
+		}
+		else if (value == "INTERMEDIATE")
+		{
+			rows = 16;
+			cols = 16;
+			mines = 25;
+		}
+		else if (value == "EXPERT")
+		{
+			rows = 16;
+			cols = 30;
+			mines = 99;
+		}
+		else // CUSTOM
+		{
+			rows = GetValue(NumRowsText, MAX_ROWS);
+			cols = GetValue(NumColsText, MAX_COLS);
+			mines = GetValue(NumMinesText, MAX_MINES);
+		}
 
 		boardManager.BuildBoard(rows, cols, CELL_WIDTH, mines);
 		gameObject.SetActive(false);

@@ -7,6 +7,8 @@ using static UnityEngine.Rendering.DebugUI.Table;
 public class BoardManager : MonoBehaviour
 {
 	public static event EventHandler<int> OnMinesChanged;
+	public static event EventHandler OnStartGame;
+	public static event EventHandler OnEndGame;
 
 	// Expert 16x30
 	// Intermediate 16x16
@@ -92,8 +94,10 @@ public class BoardManager : MonoBehaviour
 	{
 		//int k = i * numRows + j;
 		var p0 = new Position() { i = i, j = j };
-		var mines = new List<Position>();
-		mines.Add(new Position() { i = 0, j = 0 });
+		var mines = new List<Position> ()
+		{
+			new() { i = 0, j = 0 }
+		};
 
 		for (int n = 0; n < numMines; n++)
 		{
@@ -175,6 +179,7 @@ public class BoardManager : MonoBehaviour
 			}
 		}
 
+		OnStartGame?.Invoke(this, EventArgs.Empty);
 	}
 
 	private Cell GetClickedCell(Vector2 mousePosition)
@@ -209,11 +214,15 @@ public class BoardManager : MonoBehaviour
 			{
 				cell.ToggleMark();
 				numMines--;
+
+				OnMinesChanged?.Invoke(this, numMines);
 			}
 			else if (cell.GetIsMarked())
 			{
 				cell.ToggleMark();
 				numMines++;
+				
+				OnMinesChanged?.Invoke(this, numMines);
 			}
 		}
 	}
@@ -268,6 +277,11 @@ public class BoardManager : MonoBehaviour
 			{
 				billboard.SetCell(cell);
 			}
+		}
+
+		if (value == Cell.CellValue.MINE)
+		{
+			OnEndGame?.Invoke(this, EventArgs.Empty);
 		}
 	}
 

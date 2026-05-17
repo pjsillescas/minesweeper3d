@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI.Table;
 
 public class BoardManager : MonoBehaviour
 {
+	public enum GameResult { WON, LOST }
+
 	public static event EventHandler<int> OnMinesChanged;
 	public static event EventHandler OnStartGame;
-	public static event EventHandler OnEndGame;
+	public static event EventHandler<GameResult> OnEndGame;
 
 	// Expert 16x30
 	// Intermediate 16x16
@@ -43,8 +44,10 @@ public class BoardManager : MonoBehaviour
 
 	//private List<Cell> cells;
 	private Cell[,] cells;
+	private List<GameObject> instantiatedPrefabs;
 	private int numMines;
 	private bool isInitialized;
+	private bool isGameStarted;
 	private int numRows;
 	private int numColumns;
 
@@ -57,6 +60,7 @@ public class BoardManager : MonoBehaviour
 		OnMinesChanged?.Invoke(this, numMines);
 
 		// cells = new();
+		instantiatedPrefabs = new();
 		cells = new Cell[rows, columns];
 
 		for (int i = 0; i < rows; i++)
@@ -94,7 +98,7 @@ public class BoardManager : MonoBehaviour
 	{
 		//int k = i * numRows + j;
 		var p0 = new Position() { i = i, j = j };
-		var mines = new List<Position> ()
+		var mines = new List<Position>()
 		{
 			new() { i = 0, j = 0 }
 		};
@@ -179,6 +183,7 @@ public class BoardManager : MonoBehaviour
 			}
 		}
 
+		isGameStarted = true;
 		OnStartGame?.Invoke(this, EventArgs.Empty);
 	}
 
@@ -207,6 +212,11 @@ public class BoardManager : MonoBehaviour
 
 	public void TryMarkCell(Vector2 mousePosition)
 	{
+		if (!isGameStarted)
+		{
+			return;
+		}
+
 		var cell = GetClickedCell(mousePosition);
 		if (cell != null)
 		{
@@ -221,7 +231,7 @@ public class BoardManager : MonoBehaviour
 			{
 				cell.ToggleMark();
 				numMines++;
-				
+
 				OnMinesChanged?.Invoke(this, numMines);
 			}
 		}
@@ -229,6 +239,11 @@ public class BoardManager : MonoBehaviour
 
 	public void TryClickCell(Vector2 mousePosition)
 	{
+		if (!isGameStarted)
+		{
+			return;
+		}
+
 		var cell = GetClickedCell(mousePosition);
 		if (cell != null)
 		{
@@ -244,12 +259,12 @@ public class BoardManager : MonoBehaviour
 			Init(cell.GetRow(), cell.GetColumn());
 		}
 
-		if(cell.GetIsMarked())
+		if (cell.GetIsMarked())
 		{
 			return;
 		}
 
-		Debug.Log($"value {cell.GetValue()}");
+		//Debug.Log($"value {cell.GetValue()}");
 		var value = cell.Uncover();
 
 		GameObject prefab = value switch
@@ -273,6 +288,8 @@ public class BoardManager : MonoBehaviour
 			var element = Instantiate(prefab, cell.transform.position, cell.transform.rotation);
 			element.transform.Rotate(90, 0, 90);
 
+			instantiatedPrefabs.Add(element);
+
 			if (element.gameObject.TryGetComponent(out Billboard billboard))
 			{
 				billboard.SetCell(cell);
@@ -281,9 +298,33 @@ public class BoardManager : MonoBehaviour
 
 		if (value == Cell.CellValue.MINE)
 		{
-			OnEndGame?.Invoke(this, EventArgs.Empty);
+			EndGame(GameResult.LOST);
 		}
 	}
+
+	private void EndGame(GameResult result)
+	{
+		isGameStarted = false;
+		CleanBoard();
+		OnEndGame?.Invoke(this, result);
+	}
+
+	private void CleanBoard()
+	{
+		for (int i = 0; i < numRows; i++)
+		{
+			for (int j = 0; j < numColumns; j++)
+			{
+				if (cells[i, j] != null)
+				{
+					Destroy(cells[i, j].gameObject, 0.01f);
+				}
+			}
+		}
+
+		instantiatedPrefabs.ForEach(obj => Destroy(obj.gameObject, 0.01f));
+	}
+
 
 	private void OnEnable()
 	{
@@ -391,7 +432,7 @@ public class BoardManager : MonoBehaviour
 
 			var numMarkedSurroundingCells = surroundingCells.Where(cell => cell.GetIsMarked()).Count();
 
-			Debug.Log($"{numMarkedSurroundingCells} == {billboard.GetValue()}");
+			// Debug.Log($"{numMarkedSurroundingCells} == {billboard.GetValue()}");
 			if (numMarkedSurroundingCells == billboard.GetValue())
 			{
 				chordedCells.ForEach(cell =>
@@ -418,7 +459,9 @@ public class BoardManager : MonoBehaviour
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
-		BuildBoard(16, 30, 1f, 99);
+		isGameStarted = false;
+
+		//BuildBoard(16, 30, 1f, 99);
 		//BuildBoard(5, 5, 1f, 5);
 	}
 

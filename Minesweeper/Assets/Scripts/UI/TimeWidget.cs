@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using static BoardManager;
 
 public class TimeWidget : MonoBehaviour
 {
@@ -29,7 +30,7 @@ public class TimeWidget : MonoBehaviour
 		Enable();
 	}
 
-	private void OnEndGame(object sender, EventArgs args)
+	private void OnEndGame(object sender, GameResult result)
 	{
 		Disable();
 	}

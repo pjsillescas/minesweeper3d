@@ -6,6 +6,11 @@ using UnityEngine;
 
 public class BoardManager : MonoBehaviour
 {
+	float t = 0;
+	const float AMPLITUDE = 0.1f;
+	const float ANGULAR_FREQUENCY = 0.2f;
+	const float WAVELENGTH = 20f;
+
 	public enum GameResult { WON, LOST }
 
 	public static event EventHandler<int> OnMinesChanged;
@@ -43,7 +48,6 @@ public class BoardManager : MonoBehaviour
 	[SerializeField]
 	private GameObject MinePrefab;
 
-	//private List<Cell> cells;
 	private Cell[,] cells;
 	private List<GameObject> instantiatedPrefabs;
 	private int numMines;
@@ -64,7 +68,6 @@ public class BoardManager : MonoBehaviour
 		this.numMines = numMines;
 		OnMinesChanged?.Invoke(this, numMines);
 
-		// cells = new();
 		instantiatedPrefabs.Clear();
 		cells = new Cell[rows, columns];
 
@@ -76,7 +79,6 @@ public class BoardManager : MonoBehaviour
 				var z = (j - columns / 2) * cellWidth;
 				var cell = Instantiate(HiddenCellPrefab, new Vector3(x, 0, z), Quaternion.identity).GetComponent<Cell>();
 				cell.Init(i, j);
-				//cells.Add(cell);
 				cells[i, j] = cell;
 			}
 		}
@@ -112,7 +114,6 @@ public class BoardManager : MonoBehaviour
 
 	private List<Position> SetMines(int i, int j)
 	{
-		//int k = i * numRows + j;
 		var p0 = new Position() { i = i, j = j };
 		var mines = new List<Position>();
 
@@ -134,8 +135,6 @@ public class BoardManager : MonoBehaviour
 	private int GetSurroundingMinesNumber(Cell cell)
 	{
 		var num = 0;
-		//int j = index % numRows;
-		//int i = (index - j) / numRows;
 		var i = cell.GetRow();
 		var j = cell.GetColumn();
 
@@ -145,8 +144,6 @@ public class BoardManager : MonoBehaviour
 			for (int c = -1; c <= 1; c++)
 			{
 				var col = j + c;
-				//var index = (i + r) * numRows + j + c;
-				//if (cells[index].GetValue() == Cell.CellValue.MINE)
 				if (0 <= row && row < numRows && 0 <= col && col < numColumns &&
 					cells[row, col].GetValue() == Cell.CellValue.MINE)
 				{
@@ -166,22 +163,9 @@ public class BoardManager : MonoBehaviour
 		mines.ForEach(index =>
 		{
 			Debug.Log($"mine ({index.i},{index.j})");
-			//cells[index].SetValue(Cell.CellValue.MINE);
 			cells[index.i, index.j].SetValue(Cell.CellValue.MINE);
-
-			//int j = index % numRows;
-			//int i = (index - j) / numRows;
 		});
 
-		/*
-		cells.ForEach(cell =>
-		{
-			if (cell.GetValue() != Cell.CellValue.MINE)
-			{
-				cell.SetValue(GetSurroundingMinesNumber(cell));
-			}
-		});
-		*/
 		for (int r = 0; r < numRows; r++)
 		{
 			for (int c = 0; c < numColumns; c++)
@@ -300,8 +284,6 @@ public class BoardManager : MonoBehaviour
 
 		if (prefab != null)
 		{
-			//Instantiate(prefab, cell.transform.position, Quaternion.identity);
-			//Instantiate(prefab, cell.transform.position, new Quaternion(90,0,180,0));
 			var element = Instantiate(prefab, cell.transform.position, cell.transform.rotation);
 			element.transform.Rotate(90, 0, 90);
 
@@ -347,7 +329,7 @@ public class BoardManager : MonoBehaviour
 				}
 			}
 		}
-		//Debug.Log($"remaining tiles {numRemainingTiles}");
+
 		return numRemainingTiles == 0;
 	}
 
@@ -361,7 +343,6 @@ public class BoardManager : MonoBehaviour
 			{
 				if (0 <= (i + r) && (i + r) < numRows && 0 <= (j + c) && (j + c) < numColumns && cells[i + r, j + c] != null && cells[i + r, j + c].IsCovered())
 				{
-					//Debug.Log($"uncovering ({i + r},{j + c})");
 					ClickCell(cells[i + r, j + c]);
 				}
 			}
@@ -471,7 +452,6 @@ public class BoardManager : MonoBehaviour
 	private void UpdateChordedCells(int row, int column)
 	{
 		var surroundingCells = GetSurroundingCells(row, column);
-		//Debug.Log($"surrounding {surroundingCells.Count}");
 		chordedCells.ForEach(cell =>
 		{
 			if (cell != null && !surroundingCells.Contains(cell))
@@ -496,12 +476,10 @@ public class BoardManager : MonoBehaviour
 		var billboard = GetClickedBillboard(mousePosition);
 		if (billboard != null)
 		{
-
 			var surroundingCells = GetSurroundingCells(billboard.GetRow(), billboard.GetColumn());
 
 			var numMarkedSurroundingCells = surroundingCells.Count(cell => cell.GetIsMarked());
 
-			// Debug.Log($"{numMarkedSurroundingCells} == {billboard.GetValue()}");
 			if (numMarkedSurroundingCells == billboard.GetValue())
 			{
 				chordedCells.ForEach(cell =>
@@ -530,14 +508,33 @@ public class BoardManager : MonoBehaviour
 	{
 		isGameStarted = false;
 		isInitialized = false;
-
-		//BuildBoard(16, 30, 1f, 99);
-		//BuildBoard(5, 5, 1f, 5);
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		if(cells == null)
+		{
+			return;
+		}
 
+		t += Time.deltaTime;
+		for (int i = 0; i < numRows; i++)
+		{
+			for (int j = 0; j < numColumns; j++)
+			{
+				if (cells[i,j] == null)
+				{
+					continue;
+				}
+
+				float x = cells[i, j].transform.position.x;
+				float z = cells[i, j].transform.position.z;
+
+				float y = 2 * AMPLITUDE * Mathf.Sin(2 * Mathf.PI * (x / WAVELENGTH)) * Mathf.Sin(2 * Mathf.PI * (z / WAVELENGTH)) * 
+					Mathf.Cos(2 * Mathf.PI * ANGULAR_FREQUENCY * t);
+				cells[i,j].transform.position = new Vector3(x, y, z);
+			}
+		}
 	}
 }

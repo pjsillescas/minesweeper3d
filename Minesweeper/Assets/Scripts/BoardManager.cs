@@ -174,8 +174,8 @@ public class BoardManager : MonoBehaviour
 				if (cell.GetValue() != Cell.CellValue.MINE)
 				{
 					var n = GetSurroundingMinesNumber(cell);
-					Debug.Log($"({i},{j})={n}");
-					cell.SetValue(GetSurroundingMinesNumber(cell));
+					Debug.Log($"({r},{c})={n}");
+					cell.SetValue(n);
 				}
 			}
 		}
@@ -284,7 +284,7 @@ public class BoardManager : MonoBehaviour
 
 		if (prefab != null)
 		{
-			var element = Instantiate(prefab, cell.transform.position, cell.transform.rotation);
+			var element = Instantiate(prefab, cell.transform.position + Vector3.up * 0.1f, cell.transform.rotation);
 			element.transform.Rotate(90, 0, 90);
 
 			instantiatedPrefabs.Add(element);
@@ -339,11 +339,13 @@ public class BoardManager : MonoBehaviour
 		var j = cell.GetColumn();
 		for (int r = -1; r <= 1; r++)
 		{
+			var row = i + r;
 			for (int c = -1; c <= 1; c++)
 			{
-				if (0 <= (i + r) && (i + r) < numRows && 0 <= (j + c) && (j + c) < numColumns && cells[i + r, j + c] != null && cells[i + r, j + c].IsCovered())
+				var col = j + c;
+				if (0 <= row && row < numRows && 0 <= col && col < numColumns && cells[row, col] != null && cells[row, col].IsCovered())
 				{
-					ClickCell(cells[i + r, j + c]);
+					ClickCell(cells[row, col]);
 				}
 			}
 		}

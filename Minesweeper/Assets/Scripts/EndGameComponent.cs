@@ -11,13 +11,11 @@ public class EndGameComponent : MonoBehaviour
 	private void OnEnable()
 	{
 		BoardManager.OnEndGame += OnEndGame;
-		InputManager.OnClick += OnClick;
 	}
 
 	private void OnDisable()
 	{
 		BoardManager.OnEndGame -= OnEndGame;
-		InputManager.OnClick -= OnClick;
 	}
 
 	private void OnClick(object sender, Vector2 mousePosition)
@@ -33,7 +31,6 @@ public class EndGameComponent : MonoBehaviour
 		}
 		else
 		{
-			finishGame = false;
 			boardManager.RevealMines();
 			StartCoroutine(WaitForUser(result));
 		}
@@ -47,11 +44,14 @@ public class EndGameComponent : MonoBehaviour
 
 	private IEnumerator WaitForUser(BoardManager.GameResult result)
 	{
-		while(!finishGame)
+		InputManager.OnClick += OnClick;
+		finishGame = false;
+		while (!finishGame)
 		{
 			yield return null;
 		}
 
+		InputManager.OnClick -= OnClick;
 		EndGame(result);
 	}
 

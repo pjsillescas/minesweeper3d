@@ -40,6 +40,11 @@ public class StartGameWidget : MonoBehaviour
 
 	private void OnEndGame(object sender, BoardManager.GameResult result)
 	{
+		//Activate(result);
+	}
+
+	public void Activate(BoardManager.GameResult result)
+	{
 		Debug.Log(result);
 		GameResultText.text = (result == BoardManager.GameResult.WON) ? "You Won!" : "You lost!";
 		gameObject.SetActive(true);

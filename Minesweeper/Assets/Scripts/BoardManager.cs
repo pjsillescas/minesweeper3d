@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI.Table;
 
 public class BoardManager : MonoBehaviour
 {
@@ -245,11 +246,11 @@ public class BoardManager : MonoBehaviour
 		var cell = GetClickedCell(mousePosition);
 		if (cell != null)
 		{
-			ClickCell(cell);
+			ClickCell(cell, true);
 		}
 	}
 
-	private void ClickCell(Cell cell)
+	private void ClickCell(Cell cell, bool checkEndGame)
 	{
 		if (!isInitialized)
 		{
@@ -299,12 +300,15 @@ public class BoardManager : MonoBehaviour
 			UncoverNeighbours(cell);
 		}
 
-		if (isGameStarted && value == Cell.CellValue.MINE)
+		if (checkEndGame)
 		{
-			EndGame(GameResult.LOST);
-		}
+			if (isGameStarted && value == Cell.CellValue.MINE)
+			{
+				EndGame(GameResult.LOST);
+			}
 
-		CheckForGameWon();
+			CheckForGameWon();
+		}
 	}
 
 	private void CheckForGameWon()
@@ -345,7 +349,7 @@ public class BoardManager : MonoBehaviour
 				var col = j + c;
 				if (0 <= row && row < numRows && 0 <= col && col < numColumns && cells[row, col] != null && cells[row, col].IsCovered())
 				{
-					ClickCell(cells[row, col]);
+					ClickCell(cells[row, col], true);
 				}
 			}
 		}
@@ -355,11 +359,11 @@ public class BoardManager : MonoBehaviour
 	{
 		Debug.Log($"game ended {result}");
 		isGameStarted = false;
-		CleanBoard();
+		//CleanBoard();
 		OnEndGame?.Invoke(this, result);
 	}
 
-	private void CleanBoard()
+	public void ClearBoard()
 	{
 		for (int i = 0; i < numRows; i++)
 		{
@@ -375,6 +379,20 @@ public class BoardManager : MonoBehaviour
 
 		instantiatedPrefabs.ForEach(obj => Destroy(obj, 0.01f));
 		instantiatedPrefabs.Clear();
+	}
+
+	public void RevealMines()
+	{
+		for (int i = 0; i < numRows; i++)
+		{
+			for (int j = 0; j < numColumns; j++)
+			{
+				if (cells[i, j] != null && cells[i, j].GetValue() == Cell.CellValue.MINE)
+				{
+					ClickCell(cells[i, j], false);
+				}
+			}
+		}
 	}
 
 
@@ -488,7 +506,7 @@ public class BoardManager : MonoBehaviour
 				{
 					if (cell != null)
 					{
-						ClickCell(cell);
+						ClickCell(cell, true);
 					}
 				});
 
